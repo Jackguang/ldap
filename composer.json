@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "wzg/ldap": "~2.0.0"
+        "wzg/ldap": "dev-master"
     },
     "autoload": {
         "psr-4": {
