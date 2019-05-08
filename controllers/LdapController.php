@@ -4,7 +4,6 @@ namespace wzg\ldap\controllers;
 
 use yii;
 use yii\web\Controller;
-use backend\models\AdminUser;
 use wzg\ldap\components\Ldap;
 /**
  * Default controller for the `wzg` module
@@ -31,17 +30,21 @@ class LdapController extends Controller
      */
     public function actionAddUser(){
         $email = Yii::$app->request->post('email');
+        $tablename = yii::$app->params['ldaptablename'];
+        $company_field = yii::$app->params['company_field'];
         //系统是否已经存在用户
-        $find_user = AdminUser::find()->where(['email'=>$email])->one();
+        $find_user = $tablename::find()->where(['email'=>$email])->one();
         $company = yii::$app->params['ret'];
         if(empty($find_user)){
             $ldap = new Ldap();
             $user_info = $ldap->getUserInfo($email);
             if(count($user_info) == 1){
-                $model = new AdminUser();
+                $model = new $tablename;
                 $model->username = $user_info[0]['username'];
                 $model->email = $user_info[0]['email'];
-                $model->company = array_search($user_info[0]['company'], $company);;
+                $model->created_at = time();
+                $model->updated_at = time();
+                $model->$company_field = array_search($user_info[0]['company'], $company);
                 $model->save(false);
                 echo '同步成功';die;
             }
