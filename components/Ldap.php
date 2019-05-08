@@ -74,8 +74,12 @@ class Ldap
             return $user_array;
         }
         unset($user['count']);
+        $company = Yii::$app->params['ldap_company'];
         foreach ($user as $key => $val) {
             if(isset($val['mail'][0]) && isset($val['displayname'][0])){
+                $str=str_replace('ou=','',$val['dn']); 
+                $info_array = explode(',', $str);
+                $user_array[$key]['company'] = isset($company[$info_array[2]]) ? $company[$info_array[2]] : '';
                 $user_array[$key]['username'] = $val['displayname'][0]; 
                 $user_array[$key]['email'] = $val['mail'][0];
                 $user_array[$key]['title'] = isset($val['title'][0])  ? $val['title'][0] : '';
@@ -95,7 +99,7 @@ class Ldap
        $result = false;
        if($this->connect($this->m_strManager,$this->m_strPassword) != null)
        {
-           $justthese = array('mail','displayname','title','telephonenumber');//选择要获取的用户属性
+           $justthese = array('mail','displayname','title','telephonenumber','dn','uid');//选择要获取的用户属性
            $r = @ldap_search($this->m_lc, $this->m_strBaseDn, 'uid=*',$justthese);
            if ($r) 
            {
@@ -106,7 +110,26 @@ class Ldap
        $result = $this->clean_user($result);
        return $result;
     }
-
+    /**
+     * 获取用户信息
+     * @Param    参数描述
+     * @DateTime 2019-05-08
+     */
+    public function getUserInfo($email){
+        $result = false;
+        if($this->connect($this->m_strManager,$this->m_strPassword) != null)
+        {
+            $justthese = array('mail','displayname','title','telephonenumber','dn','uid');//选择要获取的用户属性
+            $r = @ldap_search($this->m_lc, $this->m_strBaseDn, 'mail='.$email,$justthese);
+            if ($r) 
+            {
+                $res = @ldap_get_entries($this->m_lc, $r);
+            }
+        }
+        $res = $this->clean_user($res);
+        $this->close();
+        return $res;
+    }
     /**
      * Replace macros {$username} with given username value
      *
