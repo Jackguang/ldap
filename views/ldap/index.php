@@ -13,7 +13,7 @@ use yii\helpers\Html;
             <th style="text-align:center;">职位</th>
             <th style="text-align:center;">公司</th>
             <th style="text-align:center;">系统角色</th>
-            <th style="text-align:center;"><a href="javascript:void(0)">同步所有用户</a></th>
+            <th style="text-align:center;"><!-- <a href="javascript:void(0)">同步所有用户</a> --></th>
         </tr>
     </thead>
     <tbody>

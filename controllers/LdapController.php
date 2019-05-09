@@ -13,6 +13,7 @@ use mdm\admin\models\searchs\AuthItem as AuthItemSearch;
  */
 class LdapController extends Controller
 {
+    public $enableCsrfValidation = false;
     /**
      * Renders the index view for the module
      * @return string
