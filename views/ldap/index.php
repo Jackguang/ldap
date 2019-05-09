@@ -12,6 +12,7 @@ use yii\helpers\Html;
             <th style="text-align:center;">邮箱</th>
             <th style="text-align:center;">职位</th>
             <th style="text-align:center;">公司</th>
+            <th style="text-align:center;">系统角色</th>
             <th style="text-align:center;"><a href="javascript:void(0)">同步所有用户</a></th>
         </tr>
     </thead>
@@ -22,6 +23,14 @@ use yii\helpers\Html;
                 <td align="center"><?= $val['email']?></td>
                 <td align="center"><?= $val['title']?></td>
                 <td align="center"><?= $val['company']?></td>
+                <td align="center">
+                    <select>
+                        <option value="">请选择</option>
+                        <?php foreach ($roleArray['allModels'] as $key => $value): ?>
+                            <option value="<?= $key?>"><?= $key?></option>
+                        <?php endforeach ?>>
+                    </select>
+                </td>
                 <td align="center"><a href="javascript:void(0)" class="synchro_user" user-email="<?= $val['email']?>">同步用户</a></td>
             </tr>
         <?php }?>
@@ -31,12 +40,18 @@ use yii\helpers\Html;
 <script>
     $('.synchro_user').click(function(){
         var email = $(this).attr('user-email');
+        var role = $(this).parent().prev().find('select').val();
+        if(!role){
+            alert('请选择角色');
+            return false;
+        }
         var $csrfToken = $('meta[name="csrf-token"]').attr("content");
         $.ajax({  
             url: "/ldap/ldap/add-user",  
             type: 'post',  
             data: {  
                 'email': email,  
+                'role': role,  
                 '_csrf-frontend': $csrfToken,
             },  
             success: function(data) {  

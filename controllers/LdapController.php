@@ -4,7 +4,10 @@ namespace wzg\ldap\controllers;
 
 use yii;
 use yii\web\Controller;
+use yii\helpers\ArrayHelper;
 use wzg\ldap\components\Ldap;
+use mdm\admin\models\Assignment;
+use mdm\admin\models\searchs\AuthItem as AuthItemSearch;
 /**
  * Default controller for the `wzg` module
  */
@@ -18,8 +21,15 @@ class LdapController extends Controller
     {
     	$ldap = new Ldap();
     	$user = $ldap->getList();
+        //获取系统角色
+        $searchRole = new AuthItemSearch(['type' => 1]);
+        $dataProvider = $searchRole->search([]);
+        $roleArray = ArrayHelper::toArray($dataProvider);
+        // echo '<pre>';
+        // print_r(ArrayHelper::toArray($dataProvider));die;
         return $this->render('index',[
-        'user'=>$user
+        'user'=>$user,
+        'roleArray'=>$roleArray
       ]);
     }
     /**
@@ -30,6 +40,7 @@ class LdapController extends Controller
      */
     public function actionAddUser(){
         $email = Yii::$app->request->post('email');
+        $item = Yii::$app->request->post('role');
         $tablename = yii::$app->params['ldaptablename'];
         $company_field = yii::$app->params['company_field'];
         //系统是否已经存在用户
@@ -46,6 +57,10 @@ class LdapController extends Controller
                 $model->updated_at = time();
                 $model->$company_field = array_search($user_info[0]['company'], $company);
                 $model->save(false);
+                //添加角色
+                $items[] = $item;
+                $ass_model = new Assignment($model->id);
+                $success = $ass_model->assign($items);
                 echo '同步成功';die;
             }
         }else{
