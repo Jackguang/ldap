@@ -142,7 +142,7 @@ class Ldap
            $info["title"]=$data['User']['title'];
            $uid = substr($info["mail"],0,strrpos($info["mail"],"@"));
 
-           $r = ldap_add($this->m_lc,"uid=".$uid.",ou=".$depar.",ou=".$company.",dc=ret,dc=cn", $info);
+           $r = @ldap_add($this->m_lc,"uid=".$uid.",ou=".$depar.",ou=".$company.",dc=ret,dc=cn", $info);
        }
        $this->close();
        return true;

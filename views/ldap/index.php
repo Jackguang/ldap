@@ -56,6 +56,7 @@ use yii\widgets\ActiveForm;
                         <?php endforeach ?>>
                     </select>
                 </td>
+
                 <td align="center">
                     <a href="javascript:void(0)" class="glyphicon glyphicon-refresh synchro_user" title="同步至系统" user-email="<?= $val['email']?>"></a>
                     <a href="/ldap/ldap/delete?email=<?= $val['email']?>" title="删除" aria-label="删除" data-pjax="0" data-confirm="您确定要删除【<?= $val['username']?>】吗？" data-method="post"><span class="glyphicon glyphicon-trash"></span></a>
