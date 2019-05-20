@@ -57,7 +57,6 @@ class Ldap
 
         }
         return $this->m_lc;
-        //return null;
     }
 
     public function close()
@@ -84,6 +83,7 @@ class Ldap
                 $user_array[$key]['email'] = $val['mail'][0];
                 $user_array[$key]['title'] = isset($val['title'][0])  ? $val['title'][0] : '';
                 $user_array[$key]['mobile'] = isset($val['telephonenumber'][0])  ? $val['telephonenumber'][0] : '';
+                $user_array[$key]['dn'] = $val['dn'];
             }
         }
         return $user_array;
@@ -94,13 +94,14 @@ class Ldap
      * @DateTime 2019-05-07
      * @return   [type]       [description]
      */
-    public function getList()
+    public function getList($username)
     {
+       $username = $username ? '*'.$username.'*' : '*';
        $result = false;
        if($this->connect($this->m_strManager,$this->m_strPassword) != null)
        {
            $justthese = array('mail','displayname','title','telephonenumber','dn','uid');//选择要获取的用户属性
-           $r = @ldap_search($this->m_lc, $this->m_strBaseDn, 'uid=*',$justthese);
+           $r = @ldap_search($this->m_lc, $this->m_strBaseDn, "(&(uid=*)(displayname=$username))",$justthese);
            if ($r) 
            {
                $result = @ldap_get_entries($this->m_lc, $r);
@@ -111,12 +112,66 @@ class Ldap
        return $result;
     }
     /**
+     * 添加用户
+     * @Param    参数描述
+     * @DateTime 2019-05-17
+     * @return   [type]       [description]
+     */
+    public function addUser($data)
+    {
+       if($this->connect($this->m_strManager,$this->m_strPassword) != null)
+       {
+
+           $company = $data['User']['company'];
+           $depar = $data['User']['depar'];
+           //检查节点
+           $this->checkDn($company,$depar);
+           $info["objectClass"][]="posixAccount";
+           $info["objectClass"][]="top";
+           $info["objectClass"][]="inetOrgPerson";
+           $info["givenName"]= $data['User']['first_name'];
+           $info["sn"]=$data['User']['second_name'];
+           $info["displayName"]=$data['User']['first_name'].$data['User']['second_name'];
+           $info["homeDirectory"]=$data['User']['company'];
+           $info["mail"]=$data['User']['email'];
+           $info["cn"]=$data['User']['email'];
+           $info["userPassword"]=$data['User']['password'];
+           $info["uidNumber"]="0";
+           $info["gidNumber"]="0";
+           $info["telephoneNumber"]=$data['User']['mobile'];
+           $info["title"]=$data['User']['title'];
+           $uid = substr($info["mail"],0,strrpos($info["mail"],"@"));
+
+           $r = ldap_add($this->m_lc,"uid=".$uid.",ou=".$depar.",ou=".$company.",dc=ret,dc=cn", $info);
+       }
+       $this->close();
+       return true;
+    }
+    /**
+     * 检查是否存在公司，部门节点
+     * @DateTime 2019-05-20
+     * @param    [type]       $company [公司]
+     * @param    [type]       $depar      [部门]
+     */
+    public function checkDn($company,$depar){
+      $res = false;
+      $r = @ldap_list($this->m_lc, "ou=$depar,ou=$company,dc=ret,dc=cn", "objectClass=*", array(""));
+      if(!$r){
+          $info["objectClass"][]="top";
+          $info["objectClass"][]="organizationalUnit";
+          $info["ou"]= $depar;
+          $res = ldap_add($this->m_lc,"ou=".$depar.",ou=".$company.",dc=ret,dc=cn", $info);
+      }else{
+        $res = true;
+      }
+      return $res;
+    }
+    /**
      * 获取用户信息
      * @Param    参数描述
      * @DateTime 2019-05-08
      */
     public function getUserInfo($email){
-        $result = false;
         if($this->connect($this->m_strManager,$this->m_strPassword) != null)
         {
             $justthese = array('mail','displayname','title','telephonenumber','dn','uid');//选择要获取的用户属性
@@ -129,6 +184,24 @@ class Ldap
         $res = $this->clean_user($res);
         $this->close();
         return $res;
+    }
+    /**
+     * 删除LDAP用户
+     * @DateTime 2019-05-20
+     * @param    [type]       $email [description]
+     */
+    public function delUser($email){
+      $result = false;
+      $user_info = $this->getUserInfo($email);
+      if(empty($user_info[0])){
+        return false;
+      }
+      if($this->connect($this->m_strManager,$this->m_strPassword) != null)
+      {
+        $result = ldap_delete($this->m_lc, $user_info[0]['dn']);
+      }
+      $this->close();
+      return $result;
     }
     /**
      * Replace macros {$username} with given username value
