@@ -64,7 +64,35 @@ class Ldap
         ldap_close($this->m_lc);
         $this->m_lc = null;
     }
-
+    /**
+     * login
+     *
+     * @param string $username
+     * @return string
+     */
+    public function ldapLogin($username,$pass){
+        $result = false;
+        $username = strstr($username, '@', TRUE);
+        if($this->connect($this->m_strManager,$this->m_strPassword) != null)
+        {
+            $r = @ldap_search($this->m_lc, $this->m_strBaseDn, 'uid=' . $username);
+            if ($r) 
+            {
+                $res = @ldap_get_entries($this->m_lc, $r);
+                if (!empty($res)) 
+                {
+                    ldap_set_option($this->m_lc, LDAP_OPT_PROTOCOL_VERSION, 3);
+                    ldap_set_option($this->m_lc, LDAP_OPT_REFERRALS,0); 
+                    if (@ldap_bind($this->m_lc, $res[0]['dn'], $pass) ) 
+                    {
+                        $result = true;
+                    }
+                }
+            } 
+        }
+        $this->close();
+        return $result;
+    }
     protected function clean_user($user)
     {
         $user_array = [];
