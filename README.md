@@ -38,12 +38,6 @@ Once the extension is installed, simply use it in your code by  :
       'ret' => [
           5 => '北京公司', //对应系统内的公司ID和公司名称
       ],  
-      'department'=>[
-        'AD'=>'行政部',  //部门节点
-      ],
-      'ldap_company'=>[
-        'BJ'=>'北京公司',//公司节点
-      ]
       'ldaptablename' => '\backend\models\AdminUser', //用户表命名空间（系统表名不同）
       'company_field' => 'company',//用户公司ID（字段不同）
       //在main.php配置如下

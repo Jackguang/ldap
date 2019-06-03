@@ -61,7 +61,7 @@ class Ldap
 
     public function close()
     {
-        ldap_close($this->m_lc);
+        @ldap_close($this->m_lc);
         $this->m_lc = null;
     }
     /**
@@ -101,7 +101,7 @@ class Ldap
             return $user_array;
         }
         unset($user['count']);
-        $company = Yii::$app->params['ldap_company'];
+        $company = $this->getCompanyDepart('company');
         foreach ($user as $key => $val) {
             if(isset($val['mail'][0]) && isset($val['displayname'][0])){
                 $str=str_replace('ou=','',$val['dn']); 
@@ -241,5 +241,29 @@ class Ldap
     {
         $this->getConfig();
         return str_replace('{$username}', $username, $this->m_userDN);
+    }
+    /**
+     * 获取公司或部门
+     * @Param    参数描述
+     * @DateTime 2019-06-03
+     * @param    [type]       $type [公司|部门]
+     */
+    public function getCompanyDepart($type){
+      if($this->connect($this->m_strManager,$this->m_strPassword) != null)
+      {
+        $str = '';
+        if($type == 'depart'){
+          $str = 'ou=BJ,';
+        }
+        $justthese = array("ou","description");//选择要获取的用户属性
+        $sr = @ldap_list($this->m_lc, $str."dc=ret,dc=cn", "ou=*", $justthese);
+        $info = ldap_get_entries($this->m_lc, $sr);
+        $result = [];
+        for ($i=0; $i < $info["count"]; $i++) {
+            $result[$info[$i]["ou"][0]] = $info[$i]["description"][0];
+        }
+      }
+      $this->close();
+      return $result;
     }
 }

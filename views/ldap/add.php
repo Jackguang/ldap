@@ -19,9 +19,9 @@ $this->beginBody();
     <?= $form->field($model, 'first_name')->textInput(['maxlength' => true]) ?>
     <?= $form->field($model, 'second_name')->textInput(['maxlength' => true]) ?>
     <?= $form->field($model, 'company')
-        ->dropDownList(yii::$app->params['ldap_company'],['prompt'=>'--请选择--']) ?>
+        ->dropDownList($ldap_company,['prompt'=>'--请选择--']) ?>
     <?= $form->field($model, 'depar')
-        ->dropDownList(yii::$app->params['department'],['prompt'=>'--请选择--']) ?>
+        ->dropDownList($ldap_depart,['prompt'=>'--请选择--']) ?>
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
     <?= $form->field($model, 'mobile')->textInput(['maxlength' => true]) ?>
     <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>

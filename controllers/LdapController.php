@@ -46,17 +46,26 @@ class LdapController extends Controller
      * @return   [type]       [description]
      */
     public function actionAdd(){
-        $this->layout = false;
-        $model = new User();
-        if ($data = Yii::$app->request->post()) {
-            $ldap = new Ldap();
-            $ldap->addUser($data);
-            return $this->redirect(Yii::$app->request->referrer);
-        }
+       $this->layout = false;
+       $cache = Yii::$app->cache;
+       $ldap = new Ldap();
+       $ldap_company = $cache->getOrSet('ldap_company', function ()use ($ldap) {
+           return $ldap->getCompanyDepart('company');
+       },600);
+       $ldap_depart = $cache->getOrSet('ldap_depart', function ()use ($ldap) {
+           return $ldap->getCompanyDepart('depart');
+       },600);
+       $model = new User();
+       if ($data = Yii::$app->request->post()) {
+           $ldap->addUser($data);
+           return $this->redirect(Yii::$app->request->referrer);
+       }
 
-        return $this->render('add', [
-            'model' => $model,
-        ]);
+       return $this->render('add', [
+           'model' => $model,
+           'ldap_company' => $ldap_company,
+           'ldap_depart' => $ldap_depart,
+       ]);
     }
     /**
      * 添加用户至系统
